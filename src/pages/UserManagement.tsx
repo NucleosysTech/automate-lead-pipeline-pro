@@ -6,16 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User } from '@/contexts/AuthContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const UserManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const { user: currentUser } = useAuth();
   const { toast } = useToast();
 
-  // Mock user data with proper engineer/manager roles
+  // Mock user data
   const [users, setUsers] = useState<User[]>([
     {
       id: '1',
@@ -43,26 +41,6 @@ const UserManagement: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form data
-    if (!formData.name.trim() || !formData.email.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check for duplicate email
-    if (!editingUser && users.some(user => user.email === formData.email)) {
-      toast({
-        title: "Email exists",
-        description: "A user with this email already exists.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (editingUser) {
       // Update user
       setUsers(users.map(user => 
@@ -90,7 +68,6 @@ const UserManagement: React.FC = () => {
       });
     }
 
-    // Reset form
     setFormData({ name: '', email: '', role: 'sales_engineer', password: '' });
     setShowForm(false);
     setEditingUser(null);
@@ -116,18 +93,6 @@ const UserManagement: React.FC = () => {
       });
     }
   };
-
-  // Only admins can access this page
-  if (currentUser?.role !== 'admin') {
-    return (
-      <Layout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -225,7 +190,6 @@ const UserManagement: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
-                    placeholder="Enter user name"
                   />
                 </div>
                 
@@ -237,7 +201,6 @@ const UserManagement: React.FC = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
-                    placeholder="Enter email address"
                   />
                 </div>
                 
@@ -267,8 +230,7 @@ const UserManagement: React.FC = () => {
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      required={!editingUser}
-                      placeholder="Enter password"
+                      required
                     />
                   </div>
                 )}

@@ -196,7 +196,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
           </div>
 
           <div>
-            <Label htmlFor="application">Application *</Label>
+            <Label htmlFor="application">Is Application *</Label>
             <Select 
               value={formData.application} 
               onValueChange={(value) => setFormData({ ...formData, application: value })}
