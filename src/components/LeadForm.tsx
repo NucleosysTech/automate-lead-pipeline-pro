@@ -27,8 +27,8 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
     source: 'website' as Lead['source'],
     assignedTo: '',
     spareParts: [] as string[],
-    attachments: [] as File[],
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   // Mock spare parts data
   const [spareParts] = useState<SparePart[]>([
@@ -89,7 +89,6 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
         source: lead.source,
         assignedTo: lead.assignedTo || '',
         spareParts: lead.spareParts || [],
-        attachments: [],
       });
     }
   }, [lead]);
@@ -119,7 +118,23 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
       return;
     }
 
-    onSave(formData);
+    // Convert File objects to FileAttachment objects
+    const attachments = selectedFiles.map((file, index) => ({
+      id: `${Date.now()}-${index}`,
+      name: file.name,
+      url: URL.createObjectURL(file), // In a real app, this would be uploaded to a server
+      type: file.type,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: user?.id || '',
+    }));
+
+    const leadData = {
+      ...formData,
+      attachments,
+    };
+
+    onSave(leadData);
   };
 
   const handleSparePartToggle = (partId: string) => {
@@ -132,12 +147,12 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setFormData({ ...formData, attachments: [...formData.attachments, ...files] });
+    setSelectedFiles([...selectedFiles, ...files]);
   };
 
   const removeFile = (index: number) => {
-    const newAttachments = formData.attachments.filter((_, i) => i !== index);
-    setFormData({ ...formData, attachments: newAttachments });
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
   };
 
   return (
@@ -196,7 +211,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
           </div>
 
           <div>
-            <Label htmlFor="application">Is Application *</Label>
+            <Label htmlFor="application">Application *</Label>
             <Select 
               value={formData.application} 
               onValueChange={(value) => setFormData({ ...formData, application: value })}
@@ -310,11 +325,11 @@ const LeadForm: React.FC<LeadFormProps> = ({ lead, onSave, onCancel }) => {
               onChange={handleFileUpload}
               className="mt-1"
             />
-            {formData.attachments.length > 0 && (
+            {selectedFiles.length > 0 && (
               <div className="mt-2">
                 <p className="text-sm text-gray-600 mb-2">Selected files:</p>
                 <div className="space-y-1">
-                  {formData.attachments.map((file, index) => (
+                  {selectedFiles.map((file, index) => (
                     <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                       <span className="text-sm truncate">{file.name}</span>
                       <Button
